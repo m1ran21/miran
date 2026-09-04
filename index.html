@@ -183,22 +183,29 @@ body{
 }
 @keyframes gradShift{ from{ background-position:0% 50%; } to{ background-position:100% 50%; } }
 
-/* Строка преимуществ под био — то, ради чего заказывают.
-   Flex, чтобы пункт переносился целиком, а разделитель не повисал в конце строки. */
+/* Список преимуществ под био — то, ради чего заказывают.
+   Колонка с галочками: пункты не ломаются посреди фразы и читаются
+   как перечень того, что человек получает. Блок центрируется целиком,
+   а текст внутри выровнен по левому краю. */
 .features{
-  display:flex; flex-wrap:wrap; justify-content:center;
-  margin:clamp(10px, 1.8vh, 15px) 0 0;
-  max-width:34ch;
+  display:flex; flex-direction:column; align-items:flex-start;
+  gap:clamp(4px, .7vh, 7px);
+  width:fit-content;
+  margin:clamp(11px, 1.9vh, 16px) auto 0;
   color:var(--muted);
-  font-size:clamp(10px, 2.8vw, 11.5px);
-  line-height:1.75;
-  letter-spacing:.02em;
+  font-size:clamp(10.5px, 2.9vw, 12px);
+  line-height:1.45;
+  letter-spacing:.01em;
+  text-align:left;
 }
-.features span{ white-space:nowrap; }
-.features span + span::before{
-  content:'·';
-  margin:0 8px;
+.features span{
+  display:flex; align-items:baseline; gap:8px;
+}
+.features span::before{
+  content:'✓';
+  flex:none;
   color:var(--accent-2);
+  font-size:.95em;
 }
 
 /* ---------- 4. Bio ---------- */
