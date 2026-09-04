@@ -183,19 +183,22 @@ body{
 }
 @keyframes gradShift{ from{ background-position:0% 50%; } to{ background-position:100% 50%; } }
 
-/* Строка преимуществ под био — то, ради чего заказывают */
+/* Строка преимуществ под био — то, ради чего заказывают.
+   Flex, чтобы пункт переносился целиком, а разделитель не повисал в конце строки. */
 .features{
+  display:flex; flex-wrap:wrap; justify-content:center;
   margin:clamp(10px, 1.8vh, 15px) 0 0;
-  max-width:33ch;
+  max-width:34ch;
   color:var(--muted);
   font-size:clamp(10px, 2.8vw, 11.5px);
-  line-height:1.7;
+  line-height:1.75;
   letter-spacing:.02em;
 }
-.features b{
+.features span{ white-space:nowrap; }
+.features span + span::before{
+  content:'·';
+  margin:0 8px;
   color:var(--accent-2);
-  font-weight:500;
-  margin:0 7px;
 }
 
 /* ---------- 4. Bio ---------- */
@@ -617,10 +620,11 @@ const ICONS = {
 
   const feat = document.getElementById('features');
   if (CONFIG.features && CONFIG.features.length) {
-    feat.innerHTML = CONFIG.features
-      .map(function(s){ return '<span></span>'; })
-      .join('<b>·</b>');
-    feat.querySelectorAll('span').forEach(function(el, i){ el.textContent = CONFIG.features[i]; });
+    CONFIG.features.forEach(function(s){
+      const el = document.createElement('span');
+      el.textContent = s;                 // разделитель рисует CSS, не разметка
+      feat.appendChild(el);
+    });
   } else {
     feat.remove();
   }
