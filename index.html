@@ -25,16 +25,19 @@
 
 /* --- Дизайн-токены. Цвета перезаписываются из CONFIG.theme при загрузке --- */
 :root{
-  --bg:            #0B0B0C;   /* глубокий графит — база */
-  --bg-2:          #141416;   /* верхняя точка градиента */
-  --gold:          #C9A227;   /* основное золото бренда */
-  --gold-soft:     #E8D9A8;   /* шампань-золото (блик) */
-  --gold-deep:     #8B6F1E;   /* тёмное золото (тень градиента) */
-  --text:          #F4F1EA;   /* основной текст */
-  --muted:         #9A948A;   /* вторичный текст */
-  --line:          rgba(201,162,39,.28);   /* тонкие линии */
-  --surface:       rgba(255,255,255,.035); /* фон круглых кнопок */
-  --surface-line:  rgba(232,217,168,.20);
+  --bg:            #07070C;   /* почти чёрный с синим подтоном */
+  --bg-2:          #0E0E1A;
+  --accent:        #7C5CFF;   /* фиолетовый — основной акцент */
+  --accent-2:      #22D3EE;   /* циан */
+  --accent-3:      #FF3D9A;   /* маджента */
+  --text:          #F2F2F7;
+  --muted:         #9797B0;
+  --line:          rgba(124,92,255,.32);   /* тонкие линии */
+  --surface:       rgba(255,255,255,.04);  /* фон круглых кнопок */
+  --surface-line:  rgba(124,92,255,.26);
+
+  /* Фирменный градиент: им залиты кнопка, кольцо фото и акцентный текст */
+  --grad: linear-gradient(100deg, var(--accent) 0%, var(--accent-2) 50%, var(--accent-3) 100%);
 
   --ease: cubic-bezier(.22,.61,.36,1);
 }
@@ -45,9 +48,7 @@ html,body{ height:100%; }
 
 body{
   margin:0;
-  background:
-    radial-gradient(120% 80% at 50% -10%, #1A1A1D 0%, transparent 60%),
-    linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 42%, #08080A 100%);
+  background:linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 55%, #050509 100%);
   background-attachment:fixed;
   color:var(--text);
   font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -75,14 +76,40 @@ body{
   margin-inline:auto;
 }
 
-/* Мягкое золотое свечение за фотографией (ширина ограничена шириной карточки,
-   иначе на узких экранах появляется горизонтальный скролл) */
+/* Живой фон: три размытых пятна медленно дрейфуют, страница «дышит».
+   overflow:hidden обязателен — иначе пятна дают горизонтальный скролл.
+   Анимируются только transform, поэтому нагрузка на телефон минимальная. */
 .glow{
-  position:absolute; top:-6%; left:50%; translate:-50% 0;
-  width:min(560px, 100%); aspect-ratio:1;
-  background:radial-gradient(circle, rgba(201,162,39,.16) 0%, rgba(201,162,39,.05) 38%, transparent 68%);
+  position:absolute; inset:0;
+  overflow:hidden;
   pointer-events:none; z-index:0;
 }
+.glow::before, .glow::after, .glow i{
+  content:''; position:absolute;
+  aspect-ratio:1; border-radius:50%;
+  will-change:transform;
+}
+.glow::before{
+  top:-12%; left:-20%; width:min(80vw, 430px);
+  background:radial-gradient(circle, var(--accent) 0%, transparent 68%);
+  filter:blur(60px); opacity:.55;
+  animation:drift1 19s ease-in-out infinite alternate;
+}
+.glow::after{
+  top:6%; right:-24%; width:min(76vw, 400px);
+  background:radial-gradient(circle, var(--accent-2) 0%, transparent 68%);
+  filter:blur(64px); opacity:.4;
+  animation:drift2 23s ease-in-out infinite alternate;
+}
+.glow i{
+  bottom:-18%; left:18%; width:min(72vw, 380px);
+  background:radial-gradient(circle, var(--accent-3) 0%, transparent 68%);
+  filter:blur(70px); opacity:.34;
+  animation:drift3 27s ease-in-out infinite alternate;
+}
+@keyframes drift1{ from{ transform:translate3d(0,0,0) scale(1);   } to{ transform:translate3d(16%,12%,0) scale(1.18); } }
+@keyframes drift2{ from{ transform:translate3d(0,0,0) scale(1.08);} to{ transform:translate3d(-14%,16%,0) scale(.88); } }
+@keyframes drift3{ from{ transform:translate3d(0,0,0) scale(.94); } to{ transform:translate3d(18%,-12%,0) scale(1.22);} }
 
 .hero{
   position:relative; z-index:1;
@@ -105,18 +132,28 @@ body{
   border-radius:50%;
   border:1px solid var(--line);
 }
-.avatar__ring{                       /* золотая рамка-градиент */
+/* Рамка-градиент, которая непрерывно вращается. Крутится только подложка
+   под фотографией, само фото остаётся неподвижным. */
+.avatar__ring{
+  position:relative;
   width:100%; height:100%;
   border-radius:50%;
-  padding:2px;
-  background:linear-gradient(150deg, var(--gold-soft) 0%, var(--gold) 38%, var(--gold-deep) 62%, var(--gold-soft) 100%);
-  box-shadow:0 18px 44px rgba(0,0,0,.55), inset 0 0 0 1px rgba(0,0,0,.35);
+  padding:2.5px;
+  box-shadow:0 18px 48px rgba(0,0,0,.6), 0 0 30px rgba(124,92,255,.35);
 }
+.avatar__ring::before{
+  content:''; position:absolute; inset:0;
+  border-radius:50%;
+  background:conic-gradient(from 0deg, var(--accent), var(--accent-2), var(--accent-3), var(--accent));
+  animation:spin 7s linear infinite;
+}
+@keyframes spin{ to{ transform:rotate(360deg); } }
 .avatar__ring img{
+  position:relative; z-index:1;
   display:block; width:100%; height:100%;
   border-radius:50%;
   object-fit:cover;
-  background:#1a1a1d;
+  background:#12121c;
 }
 
 /* ---------- 2. Имя ---------- */
@@ -132,12 +169,33 @@ body{
 /* ---------- 3. Должность ---------- */
 .role{
   margin:clamp(9px, 1.6vh, 13px) 0 0;
-  color:var(--gold);
+  /* текст залит фирменным градиентом */
+  background:var(--grad);
+  background-size:200% 100%;
+  -webkit-background-clip:text; background-clip:text;
+  color:transparent;
   font-size:clamp(9.5px, 2.7vw, 11px);
-  font-weight:400;
+  font-weight:600;
   text-transform:uppercase;
   letter-spacing:.26em;
   text-indent:.26em;            /* компенсируем разрядку последней буквы */
+  animation:gradShift 7s ease-in-out infinite alternate;
+}
+@keyframes gradShift{ from{ background-position:0% 50%; } to{ background-position:100% 50%; } }
+
+/* Строка преимуществ под био — то, ради чего заказывают */
+.features{
+  margin:clamp(10px, 1.8vh, 15px) 0 0;
+  max-width:33ch;
+  color:var(--muted);
+  font-size:clamp(10px, 2.8vw, 11.5px);
+  line-height:1.7;
+  letter-spacing:.02em;
+}
+.features b{
+  color:var(--accent-2);
+  font-weight:500;
+  margin:0 7px;
 }
 
 /* ---------- 4. Bio ---------- */
@@ -162,7 +220,7 @@ body{
 .divider span:last-child{ background:linear-gradient(90deg, var(--line), transparent); }
 .divider i{
   width:5px; height:5px; rotate:45deg;
-  background:var(--gold);
+  background:var(--accent);
   opacity:.85;
 }
 
@@ -172,25 +230,67 @@ body{
   width:100%; max-width:340px;
   min-height:clamp(52px, 7.2vh, 58px);
   padding:0 22px;
+  position:relative; overflow:hidden;
   border:0; border-radius:100px;
-  background:linear-gradient(135deg, var(--gold-soft) 0%, var(--gold) 52%, #B08D1C 100%);
-  color:#14110A;
-  text-decoration:none;              /* кнопка — это ссылка <a> на .vcf */
+  /* Стопы намеренно тёмные: белый текст на них читается уверенно,
+     а неон вынесен в свечение вокруг кнопки. */
+  background:linear-gradient(100deg, #5B2BFF 0%, #8B2FE8 52%, #C31D7A 100%);
+  color:#fff;
+  text-decoration:none;              /* кнопка — это ссылка <a> */
   font-family:'Inter', sans-serif;
-  font-size:clamp(14px, 4vw, 15.5px);
-  font-weight:500;
-  letter-spacing:.035em;
+  font-size:clamp(14.5px, 4.2vw, 16px);
+  font-weight:600;
+  letter-spacing:.02em;
   cursor:pointer;
-  box-shadow:0 12px 30px rgba(201,162,39,.24), 0 2px 6px rgba(0,0,0,.4);
-  transition:transform .18s var(--ease), box-shadow .25s var(--ease), filter .2s var(--ease);
+  animation:ctaPulse 2.8s ease-in-out infinite;
+  transition:transform .18s var(--ease), filter .2s var(--ease);
 }
-.cta svg{ width:18px; height:18px; flex:none; }
+.cta svg{ width:19px; height:19px; flex:none; position:relative; z-index:1; }
+.cta span{ position:relative; z-index:1; }
+
+/* Пульсирующее кольцо: взгляд возвращается к кнопке сам */
+@keyframes ctaPulse{
+  0%,100%{ box-shadow:0 14px 34px rgba(124,92,255,.38), 0 0 0 0 rgba(124,92,255,.42); }
+  60%    { box-shadow:0 18px 46px rgba(124,92,255,.55), 0 0 0 12px rgba(124,92,255,0); }
+}
+/* Блик, пробегающий по кнопке раз в несколько секунд */
+.cta::after{
+  content:''; position:absolute; top:0; bottom:0; left:0;
+  width:38%;
+  background:linear-gradient(100deg, transparent, rgba(255,255,255,.42), transparent);
+  transform:translateX(-180%) skewX(-18deg);
+  animation:shine 4.2s ease-in-out infinite;
+}
+@keyframes shine{
+  0%, 62% { transform:translateX(-180%) skewX(-18deg); }
+  100%    { transform:translateX(340%)  skewX(-18deg); }
+}
 .cta:active{                       /* тактильный отклик на нажатие */
-  transform:scale(.965);
-  box-shadow:0 6px 16px rgba(201,162,39,.20);
-  filter:brightness(.97);
+  transform:scale(.96);
+  filter:brightness(1.08);
 }
-.cta:focus-visible{ outline:2px solid var(--gold-soft); outline-offset:3px; }
+.cta:focus-visible{ outline:2px solid var(--accent-2); outline-offset:3px; }
+
+/* Микроподпись под кнопкой — снимает страх «а вдруг долго» */
+.cta-note{
+  margin:clamp(8px, 1.4vh, 12px) 0 0;
+  color:var(--muted);
+  font-size:clamp(10px, 2.8vw, 11.5px);
+  letter-spacing:.02em;
+}
+.cta-note::before{
+  content:''; display:inline-block;
+  width:6px; height:6px; margin-right:7px;
+  border-radius:50%;
+  background:#2BE38A;
+  box-shadow:0 0 0 0 rgba(43,227,138,.6);
+  animation:dot 2.2s ease-out infinite;
+}
+@keyframes dot{
+  0%  { box-shadow:0 0 0 0 rgba(43,227,138,.6); }
+  70% { box-shadow:0 0 0 7px rgba(43,227,138,0); }
+  100%{ box-shadow:0 0 0 0 rgba(43,227,138,0); }
+}
 
 /* ---------- 7. Ряд круглых иконок ----------
    Размер кнопки вычисляется из ширины ряда и их количества (--n задаётся из JS),
@@ -211,7 +311,7 @@ body{
   border-radius:50%;
   border:1px solid var(--surface-line);
   background:var(--surface);
-  color:var(--gold-soft);
+  color:var(--accent-2);
   text-decoration:none;
   -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
   transition:transform .18s var(--ease), border-color .25s var(--ease), background .25s var(--ease), color .25s var(--ease);
@@ -219,14 +319,14 @@ body{
 .links a svg{ width:clamp(17px, 4.6vw, 20px); height:auto; }
 .links a:active{
   transform:scale(.9);
-  background:rgba(201,162,39,.14);
-  border-color:var(--gold);
+  background:rgba(124,92,255,.14);
+  border-color:var(--accent);
   color:#fff;
 }
-.links a:focus-visible{ outline:2px solid var(--gold-soft); outline-offset:3px; }
+.links a:focus-visible{ outline:2px solid var(--accent-2); outline-offset:3px; }
 @media (hover:hover){
-  .links a:hover{ border-color:var(--gold); background:rgba(201,162,39,.10); }
-  .cta:hover{ box-shadow:0 16px 36px rgba(201,162,39,.3); }
+  .links a:hover{ border-color:var(--accent); background:rgba(124,92,255,.10); }
+  .cta:hover{ box-shadow:0 16px 36px rgba(124,92,255,.3); }
 }
 
 /* ---------- 8. Подвал: логотип и слоган ---------- */
@@ -248,7 +348,7 @@ body{
   font-size:clamp(13px, 3.6vw, 15px);
   letter-spacing:.2em; text-indent:.2em;
   text-transform:uppercase;
-  color:var(--gold);
+  color:var(--accent);
 }
 .tagline{
   margin:0;
@@ -296,8 +396,15 @@ body{
   to  { opacity:1; transform:translateY(0) scale(1); }
 }
 
+/* Кому движение мешает — страница замирает полностью, но остаётся читаемой */
 @media (prefers-reduced-motion:reduce){
   .reveal{ animation:none; opacity:1; }
+  .glow::before, .glow::after, .glow i,
+  .avatar__ring::before, .role, .cta, .cta::after, .cta-note::before{
+    animation:none !important;
+  }
+  .cta{ box-shadow:0 14px 34px rgba(124,92,255,.38); }
+  .cta::after{ display:none; }
   *{ transition-duration:.01ms !important; }
 }
 
@@ -313,7 +420,7 @@ body{
 
 <body>
   <main class="card">
-    <div class="glow" aria-hidden="true"></div>
+    <div class="glow" aria-hidden="true"><i></i></div>
 
     <section class="hero">
       <!-- 1. Фото -->
@@ -326,12 +433,16 @@ body{
       <p class="role reveal" id="role" style="--d:260ms"></p>
       <p class="bio reveal"  id="bio"  style="--d:340ms"></p>
 
+      <!-- 4b. Преимущества одной строкой (CONFIG.features) -->
+      <p class="features reveal" id="features" style="--d:400ms"></p>
+
       <!-- 5. Разделитель -->
-      <div class="divider reveal" style="--d:420ms" aria-hidden="true"><span></span><i></i><span></span></div>
+      <div class="divider reveal" style="--d:460ms" aria-hidden="true"><span></span><i></i><span></span></div>
 
       <!-- 6. Главная кнопка. Что именно на ней — задаётся в CONFIG.cta:
            иконка, подпись и ссылка. Содержимое подставляется из конфига. -->
-      <a class="cta reveal" id="ctaBtn" href="#" style="--d:500ms"></a>
+      <a class="cta reveal" id="ctaBtn" href="#" style="--d:540ms"></a>
+      <p class="cta-note reveal" id="ctaNote" style="--d:600ms"></p>
 
       <!-- 7. Круглые иконки-ссылки (генерируются из CONFIG.actions) -->
       <nav class="links reveal" id="links" style="--d:580ms" aria-label="Контакты"></nav>
@@ -354,15 +465,16 @@ body{
    ========================================================================== */
 const CONFIG = {
 
-  /* --- Фирменные цвета (перезаписывают CSS-переменные) --- */
+  /* --- Цвета. Это продающая страница, а не визитка клиента: палитра
+         намеренно другая — холодный неон вместо сдержанного золота. --- */
   theme: {
-    bg:       '#0B0B0C',
-    bg2:      '#141416',
-    gold:     '#C9A227',
-    goldSoft: '#E8D9A8',
-    goldDeep: '#8B6F1E',
-    text:     '#F4F1EA',
-    muted:    '#9A948A'
+    bg:      '#07070C',   // почти чёрный с синим подтоном
+    bg2:     '#0E0E1A',
+    accent:  '#7C5CFF',   // фиолетовый — основной
+    accent2: '#22D3EE',   // циан — вторая точка градиента
+    accent3: '#FF3D9A',   // маджента — третья, для живого перелива
+    text:    '#F2F2F7',
+    muted:   '#9797B0'
   },
 
   /* --- Персона --- */
@@ -417,9 +529,17 @@ const CONFIG = {
          (параметр ?text= работает только у ботов), поэтому чат открывается пустым. --- */
   cta: {
     id:    'telegram',                      // иконка берётся из ICONS по этому id
-    label: 'Написать в Telegram',
+    label: 'Заказать визитку',
+    note:  'Отвечаю в течение часа',        // микроподпись под кнопкой
     href:  c => c.telegram
   },
+
+  /* --- Преимущества одной строкой под био. Пустой массив — блок не рисуется. --- */
+  features: [
+    'Все контакты в одном касании',
+    'Меняете данные — карта та же',
+    'Готово за 1 день'
+  ],
 
   /* --- Тексты интерфейса --- */
   ui: {
@@ -470,9 +590,9 @@ const ICONS = {
   const root = document.documentElement.style;
   root.setProperty('--bg',        t.bg);
   root.setProperty('--bg-2',      t.bg2);
-  root.setProperty('--gold',      t.gold);
-  root.setProperty('--gold-soft', t.goldSoft);
-  root.setProperty('--gold-deep', t.goldDeep);
+  root.setProperty('--accent',   t.accent);
+  root.setProperty('--accent-2', t.accent2);
+  root.setProperty('--accent-3', t.accent3);
   root.setProperty('--text',      t.text);
   root.setProperty('--muted',     t.muted);
 
@@ -490,6 +610,20 @@ const ICONS = {
   cta.innerHTML = (ICONS[CONFIG.cta.id] || '') + '<span></span>';
   cta.querySelector('span').textContent = CONFIG.cta.label;
   if (/^https?:/i.test(cta.href)) { cta.target = '_blank'; cta.rel = 'noopener noreferrer'; }
+
+  // Микроподпись под кнопкой и строка преимуществ — оба блока необязательные
+  const note = document.getElementById('ctaNote');
+  if (CONFIG.cta.note) note.textContent = CONFIG.cta.note; else note.remove();
+
+  const feat = document.getElementById('features');
+  if (CONFIG.features && CONFIG.features.length) {
+    feat.innerHTML = CONFIG.features
+      .map(function(s){ return '<span></span>'; })
+      .join('<b>·</b>');
+    feat.querySelectorAll('span').forEach(function(el, i){ el.textContent = CONFIG.features[i]; });
+  } else {
+    feat.remove();
+  }
 
   document.getElementById('brandName').textContent = b.name;
   document.getElementById('tagline').textContent   = b.tagline;
